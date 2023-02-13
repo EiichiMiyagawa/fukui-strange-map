@@ -1,0 +1,110 @@
+<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width">
+  <title>福井県怪異マップ</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v7.1.0/ol.css">
+  <script src="https://cdn.jsdelivr.net/npm/ol@v7.1.0/dist/ol.js"></script>
+</head><body>
+  <h1 id=title></h1>
+  <div id="olmap" style="width:auto;height:600px;"></div>
+  <div id="popup" class="ol-popup">
+    <div id="popup-content"></div>
+  </div>
+  <hr />
+  (<a href="https://eiichimiyagawa.github.io/fukui-strange-map/data.csv" target="_blank">data</a>, <a href="https://github.com/EiichiMiyagawa/fukui-strange-map" target="_blank">src</a>)<br>
+  <p><a target="_blank" href="https://icons8.com/icon/OBmVbH2qOGwK/%E3%83%9E%E3%83%BC%E3%82%AB%E3%83%BC">マーカー</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a></p>
+  <p>参考文献：水木しげる「図説 日本妖怪大全」：講談社、水木しげる「図説 日本妖怪大鑑」：講談社、朝里樹「日本現代怪異事典」：笠間書院</p>
+</div>
+
+<script type="module">
+  import { OLMap } from "https://eiichimiyagawa.github.io/OLMap/v1/OLMap.js";
+  import { CSV } from "https://js.sabae.cc/CSV.js";
+  
+  // iOS14以前に関する対応（top-level await未対応のため）
+  addEventListener("load", async () => {
+    title.textContent = document.title;
+    
+    const url = "./data.csv";
+    const data = await CSV.fetch("./data.csv");
+    const spotData = await CSV.toJSON(data);
+    
+    const map = new OLMap({
+      tileUrl: "https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png",
+      zoom: 9
+    });
+    
+    map.addTileLayer("pic", "https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg");
+    const picLayer = map.getLayer("pic");
+    picLayer.setOpacity(0.6);
+
+    map.addVectorLayer("marker");
+
+    const show = () => {
+      const markerLayer = map.getLayer("marker");
+      markerLayer.getSource().clear(true);
+
+      if (spotData.length) {
+        const r = 0.0002;
+        spotData.forEach((spot) => {
+          const name = spot["URL"] ? `<a href="${spot["URL"]}" target="_blank">${spot["名前"]}</a>` : spot["名前"];
+          map.addMarker(markerLayer, {
+            longitude: Number(spot["経度"]) + Math.random() * r * 2 - r,
+            latitude: Number(spot["緯度"]) + Math.random() * r * 2 - r,
+            content: `<p>${name}：${spot["ふりがな"]}</p><p>${spot["出現地域"]}</p>`,
+            icon: "./image/icon.png"
+          });
+        });
+      }
+    }
+
+    show();
+  });
+  
+</script>
+
+<style>
+  body {
+    text-align: center;
+    font-family: sans-serif;
+  }
+  textarea {
+    width: 70vw;
+    height: 8em;
+  }
+  #divsels {
+    margin-bottom: .5em;
+  }
+  #prefbox > * {
+    margin: .5em .2em;
+  }
+  .ol-popup {
+    position: absolute;
+    background-color: white;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid #cccccc;
+    bottom: 12px;
+    left: -50px;
+    min-width: 280px;
+  }
+  .ol-popup:after, .ol-popup:before {
+    top: 100%;
+    border: solid transparent;
+    content: " ";
+    height: 0;
+    width: 0;
+    position: absolute;
+    pointer-events: none;
+  }
+  .ol-popup:after {
+    border-top-color: white;
+    border-width: 10px;
+    left: 48px;
+    margin-left: -10px;
+  }
+  .ol-popup:before {
+    border-top-color: #cccccc;
+    border-width: 11px;
+    left: 48px;
+    margin-left: -11px;
+  }
+</style>
